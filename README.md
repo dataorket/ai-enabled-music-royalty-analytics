@@ -5,6 +5,8 @@
 > interactive dashboards, and **AI-enabled natural-language querying** — all on a
 > Snowflake-compatible analytical engine (DuckDB).
 
+![NL→SQL: "Top 10 artists by royalties"](static/dashboard-screenshot.png)
+
 ---
 
 ## ✨ Key Features
