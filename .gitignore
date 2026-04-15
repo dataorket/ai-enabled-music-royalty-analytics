@@ -1,0 +1,24 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*.pyo
+
+# DuckDB warehouse (generated)
+data/*.duckdb
+data/*.duckdb.wal
+
+# CSV data (generated)
+data/*.csv
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

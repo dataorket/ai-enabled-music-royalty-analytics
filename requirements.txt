@@ -1,0 +1,8 @@
+duckdb>=0.10.0
+flask>=3.0
+plotly>=5.18
+pandas>=2.1
+openai>=1.12
+python-dotenv>=1.0
+requests>=2.31
+gunicorn>=21.2

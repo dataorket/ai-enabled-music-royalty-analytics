@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Royalty Analytics — AI-Enabled Platform</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --accent: #6c5ce7;
+            --accent2: #00cec9;
+            --text: #dfe6e9;
+            --muted: #636e72;
+            --border: #2d3436;
+            --success: #00b894;
+            --warn: #fdcb6e;
+            --danger: #d63031;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, var(--accent), #4834d4);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        header h1 { font-size: 1.5rem; font-weight: 600; }
+        header .subtitle { font-size: 0.85rem; opacity: 0.8; }
+        .badge { 
+            background: rgba(255,255,255,0.15); 
+            padding: 0.3rem 0.8rem; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.2rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-card .value { font-size: 1.6rem; font-weight: 700; margin-top: 0.3rem; color: var(--accent2); }
+        .kpi-card:first-child .value { color: var(--success); }
+
+        /* Charts */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.2rem;
+            border: 1px solid var(--border);
+        }
+        .chart-card h3 { font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--text); }
+
+        /* NL Query */
+        .nl-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .nl-section h2 { font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .nl-input-row { display: flex; gap: 0.8rem; margin-bottom: 1rem; }
+        .nl-input-row input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        .nl-input-row input:focus { outline: none; border-color: var(--accent); }
+        .nl-input-row button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .nl-input-row button:hover { background: #5f4dd0; }
+        .examples { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .examples button {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .examples button:hover { border-color: var(--accent); color: var(--accent); }
+
+        .nl-sql { 
+            background: var(--bg); 
+            padding: 0.8rem; 
+            border-radius: 6px; 
+            font-family: 'Fira Code', monospace; 
+            font-size: 0.8rem; 
+            color: var(--accent2); 
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            display: none;
+        }
+        .nl-results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .nl-results-table th {
+            background: var(--bg);
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+        }
+        .nl-results-table td {
+            padding: 0.5rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .nl-results-table tr:hover td { background: rgba(108,92,231,0.08); }
+        .nl-mode-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+        }
+        .mode-llm { background: var(--success); color: #000; }
+        .mode-template { background: var(--warn); color: #000; }
+
+        /* DQ Section */
+        .dq-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .dq-bar { display: flex; align-items: center; gap: 1rem; margin-top: 0.8rem; }
+        .dq-bar .bar-bg {
+            flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+        }
+        .dq-bar .bar-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.5s; }
+        .dq-detail { margin-top: 0.8rem; font-size: 0.8rem; }
+        .dq-detail span.pass { color: var(--success); }
+        .dq-detail span.fail { color: var(--danger); }
+
+        footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8rem; }
+
+        @media (max-width: 768px) {
+            .chart-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .spinner { display: none; }
+        .spinner.active { display: inline-block; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>🎵 Music Royalty Analytics</h1>
+        <div class="subtitle">AI-Enabled Analytics • Star Schema on DuckDB (Snowflake-compatible)</div>
+    </div>
+    <span class="badge">Portfolio Demo — Analytics Engineer</span>
+</header>
+
+<div class="container">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="label">Net Royalties</div>
+            <div class="value">{{ kpis.total_net_royalties }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Gross Royalties</div>
+            <div class="value">{{ kpis.total_gross_royalties }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Total Streams</div>
+            <div class="value">{{ kpis.total_streams }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Artists</div>
+            <div class="value">{{ kpis.total_artists }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Works</div>
+            <div class="value">{{ kpis.total_works }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Territories</div>
+            <div class="value">{{ kpis.total_territories }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label">Pending Royalties</div>
+            <div class="value" style="color: var(--warn);">{{ kpis.pending_royalties }}</div>
+        </div>
+    </div>
+
+    <!-- NL Query (THE DIFFERENTIATOR) -->
+    <div class="nl-section">
+        <h2>🤖 Ask Your Data — Natural Language Query Engine</h2>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+            Type a question in plain English and get instant SQL + results. Powered by AI (OpenAI) with template fallback.
+        </p>
+        <div class="examples">
+            <button onclick="fillQuery('Top 10 artists by royalties')">Top 10 artists</button>
+            <button onclick="fillQuery('Royalties by territory')">By territory</button>
+            <button onclick="fillQuery('Monthly trend')">Monthly trend</button>
+            <button onclick="fillQuery('Streams by genre')">By genre</button>
+            <button onclick="fillQuery('Top 5 songs')">Top songs</button>
+            <button onclick="fillQuery('Total royalties')">Total royalties</button>
+            <button onclick="fillQuery('Disputed royalties')">Disputed</button>
+            <button onclick="fillQuery('Royalties in Germany')">Germany</button>
+        </div>
+        <div class="nl-input-row">
+            <input type="text" id="nlQuestion" placeholder="e.g. Top 10 artists by net royalties in Q1 2025 …" 
+                   onkeydown="if(event.key==='Enter') submitQuery()">
+            <button onclick="submitQuery()">
+                <span id="querySpinner" class="spinner">⏳</span> Ask
+            </button>
+        </div>
+        <pre class="nl-sql" id="nlSql"></pre>
+        <div id="nlModeBadge"></div>
+        <div id="nlResults"></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h3>💰 Top Artists by Net Royalties (EUR)</h3>
+            <div id="chartTopArtists"></div>
+        </div>
+        <div class="chart-card">
+            <h3>🌍 Royalties by Territory</h3>
+            <div id="chartTerritory"></div>
+        </div>
+        <div class="chart-card">
+            <h3>📈 Monthly Royalty Trend</h3>
+            <div id="chartMonthly"></div>
+        </div>
+        <div class="chart-card">
+            <h3>📊 Streams by Genre</h3>
+            <div id="chartGenre"></div>
+        </div>
+        <div class="chart-card">
+            <h3>📱 Royalties by Platform</h3>
+            <div id="chartPlatform"></div>
+        </div>
+    </div>
+
+    <!-- Data Quality -->
+    <div class="dq-section">
+        <h2>🛡️ Data Quality Health</h2>
+        <div class="dq-bar">
+            <span id="dqLabel">Loading…</span>
+            <div class="bar-bg"><div class="bar-fill" id="dqBar" style="width:0%"></div></div>
+            <span id="dqPct">—</span>
+        </div>
+        <div class="dq-detail" id="dqDetail"></div>
+    </div>
+
+</div>
+
+<footer>
+    Music Royalty Analytics Demo • DuckDB (Snowflake-compatible) • Star Schema • NL→SQL AI Engine<br>
+    Built as a portfolio project demonstrating modern analytics engineering
+</footer>
+
+<script>
+    // ── Chart rendering ──────────────────────────────────────
+    const darkLayout = {
+        paper_bgcolor: '#1a1d27',
+        plot_bgcolor: '#1a1d27',
+        font: { color: '#dfe6e9', size: 12 },
+        margin: { t: 10, b: 40, l: 50, r: 20 },
+        xaxis: { gridcolor: '#2d3436' },
+        yaxis: { gridcolor: '#2d3436' },
+    };
+    const config = { responsive: true, displayModeBar: false };
+
+    // Top Artists
+    const topArtists = {{ top_artists | safe }};
+    Plotly.newPlot('chartTopArtists', [{
+        x: topArtists.map(r => r.total_net_eur),
+        y: topArtists.map(r => r.artist_name),
+        type: 'bar', orientation: 'h',
+        marker: { color: '#6c5ce7' },
+    }], { ...darkLayout, yaxis: { ...darkLayout.yaxis, autorange: 'reversed' }, margin: { ...darkLayout.margin, l: 140 } }, config);
+
+    // Territory
+    const byTerritory = {{ by_territory | safe }};
+    Plotly.newPlot('chartTerritory', [{
+        x: byTerritory.map(r => r.territory_name),
+        y: byTerritory.map(r => r.total_net_eur),
+        type: 'bar',
+        marker: { color: '#00cec9' },
+    }], darkLayout, config);
+
+    // Monthly trend
+    const monthly = {{ monthly | safe }};
+    const labels = monthly.map(r => r.year + '-' + String(r.month).padStart(2, '0'));
+    Plotly.newPlot('chartMonthly', [
+        { x: labels, y: monthly.map(r => r.total_gross_eur), name: 'Gross', line: { color: '#fdcb6e' } },
+        { x: labels, y: monthly.map(r => r.total_net_eur), name: 'Net', line: { color: '#00b894' } },
+    ], { ...darkLayout, showlegend: true, legend: { x: 0, y: 1.1, orientation: 'h' } }, config);
+
+    // Genre
+    const byGenre = {{ by_genre | safe }};
+    Plotly.newPlot('chartGenre', [{
+        labels: byGenre.map(r => r.genre),
+        values: byGenre.map(r => r.total_streams),
+        type: 'pie', hole: 0.4,
+        marker: { colors: ['#6c5ce7','#00cec9','#fdcb6e','#e17055','#00b894','#d63031','#0984e3','#636e72','#fab1a0','#74b9ff'] },
+        textinfo: 'label+percent',
+    }], { ...darkLayout, showlegend: false }, config);
+
+    // Platform
+    const byPlatform = {{ by_platform | safe }};
+    Plotly.newPlot('chartPlatform', [{
+        x: byPlatform.map(r => r.platform_name),
+        y: byPlatform.map(r => r.total_net_eur),
+        type: 'bar',
+        marker: { color: '#e17055' },
+    }], { ...darkLayout, xaxis: { ...darkLayout.xaxis, tickangle: -30 } }, config);
+
+    // ── NL Query ──────────────────────────────────────────────
+    function fillQuery(q) { document.getElementById('nlQuestion').value = q; }
+
+    async function submitQuery() {
+        const q = document.getElementById('nlQuestion').value.trim();
+        if (!q) return;
+
+        document.getElementById('querySpinner').classList.add('active');
+        document.getElementById('nlSql').style.display = 'none';
+        document.getElementById('nlResults').innerHTML = '';
+        document.getElementById('nlModeBadge').innerHTML = '';
+
+        try {
+            const resp = await fetch('/api/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: q }),
+            });
+            const data = await resp.json();
+
+            // Show SQL
+            document.getElementById('nlSql').textContent = data.sql;
+            document.getElementById('nlSql').style.display = 'block';
+
+            // Mode badge
+            const modeClass = data.mode === 'llm' ? 'mode-llm' : 'mode-template';
+            const modeLabel = data.mode === 'llm' ? '🧠 LLM' : '📋 Template';
+            document.getElementById('nlModeBadge').innerHTML =
+                `<span class="nl-mode-badge ${modeClass}">${modeLabel}</span> ${data.row_count} rows`;
+
+            if (data.error) {
+                document.getElementById('nlResults').innerHTML = `<p style="color:var(--danger)">Error: ${data.error}</p>`;
+            } else if (data.rows.length > 0) {
+                let html = '<table class="nl-results-table"><thead><tr>';
+                data.columns.forEach(c => html += `<th>${c}</th>`);
+                html += '</tr></thead><tbody>';
+                data.rows.slice(0, 50).forEach(row => {
+                    html += '<tr>';
+                    row.forEach(val => {
+                        const display = typeof val === 'number' ? val.toLocaleString('en', {maximumFractionDigits: 2}) : val;
+                        html += `<td>${display}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                document.getElementById('nlResults').innerHTML = html;
+            }
+        } catch (err) {
+            document.getElementById('nlResults').innerHTML = `<p style="color:var(--danger)">Request failed: ${err}</p>`;
+        }
+        document.getElementById('querySpinner').classList.remove('active');
+    }
+
+    // ── Data Quality ──────────────────────────────────────────
+    async function loadDQ() {
+        try {
+            const resp = await fetch('/api/health');
+            const data = await resp.json();
+            const pct = Math.round((data.passed / data.total) * 100);
+            document.getElementById('dqLabel').textContent = `${data.passed}/${data.total} checks passed`;
+            document.getElementById('dqPct').textContent = `${pct}%`;
+            document.getElementById('dqBar').style.width = `${pct}%`;
+            document.getElementById('dqBar').style.background = pct === 100 ? '#00b894' : '#fdcb6e';
+
+            let detail = '';
+            data.checks.forEach(c => {
+                const cls = c.passed ? 'pass' : 'fail';
+                const icon = c.passed ? '✅' : '❌';
+                detail += `<span class="${cls}">${icon} ${c.check}</span> &nbsp; `;
+            });
+            document.getElementById('dqDetail').innerHTML = detail;
+        } catch (err) {
+            document.getElementById('dqLabel').textContent = 'Could not load DQ checks';
+        }
+    }
+    loadDQ();
+</script>
+
+</body>
+</html>

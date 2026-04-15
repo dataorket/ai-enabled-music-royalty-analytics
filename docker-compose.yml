@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  analytics:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - FLASK_DEBUG=0
+    volumes:
+      - ./data:/app/data   # persist warehouse
+    restart: unless-stopped
