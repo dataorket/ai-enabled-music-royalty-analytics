@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: music-royalty-analytics
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
